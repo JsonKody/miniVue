@@ -75,21 +75,44 @@ function effect(eff) {
     activeEffect = null
 }
 
+
+function computed(getter) {
+    let result = ref()
+
+    effect(() => (result.value = getter()))
+
+    return result
+}
+
+
 let product = reactive({ price: 5, quantity: 2 })
-let salePrice = ref(0)
-let total = 0
-
-effect(() => {
-    salePrice.value = product.price * 0.9
+let salePrice = computed(() => {
+    return product.price * 0.9
 })
 
-effect(() => {
-    total = salePrice.value * product.quantity
+let total = computed(() => {
+    return salePrice.value * product.quantity
 })
 
-console.log(`bf ... Sale Price: ${salePrice.value}, total: ${total}`)
-salePrice.value = 3
-console.log(`aft .. Sale Price: ${salePrice.value}, total: ${total}`)
-console.log(`bf ... quantity: ${product.quantity}, total: ${total}`)
-product.quantity = 15
-console.log(`aft .. quantity: ${product.quantity}, total: ${total}`)
+
+console.log(
+    `Before updated quantity total (should be 9) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+)
+product.quantity = 3
+console.log(
+    `After updated quantity total (should be 13.5) = ${total.value} salePrice (should be 4.5) = ${salePrice.value}`
+)
+product.price = 10
+console.log(
+    `After updated price total (should be 27) = ${total.value} salePrice (should be 9) = ${salePrice.value}`
+)
+
+// Plus let's verify we can add additional objects to the reactive object
+
+product.name = 'Shoes'
+
+effect(() => {
+    console.log(`Product name is now ${product.name}`)
+})
+product.name = 'Socks'
+product.name = 'Wes Bos'
